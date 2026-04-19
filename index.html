@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Proyección de Patrimonio 2030</title>
+<title>Plan 2030</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -95,7 +95,7 @@
 <body>
 <div class="container">
 
-  <h1>Proyección de Patrimonio 2030</h1>
+  <h1>Plan 2030</h1>
   <div class="subtitle">Pauli &amp; Jordi ❤️ — Proyección patrimonial 2030–2039</div>
   <div class="meta">Capital inicial €4,000,000 · Trading crypto · Banca Privada · Casa Mallorca · Abril 2026</div>
 
@@ -280,14 +280,14 @@ function calcAll() {
     const cash = (0.15 / 0.85) * finNoncash;
     const total = bot + banca + cash + mallorcaRE;
 
-    const annualPersonal = personalThisYear;
+    const annualPersonal = personalMonthly * 12;
     const annualMort = MORT_PAYMENT * 12;
 
     results.push({
       year, calYear: 2029 + year,
       bot, banca, cash, mallorca: mallorcaRE, total,
       pctCrypto: bot / total * 100,
-      personalMonthly: personalThisYear / 12,
+      personalMonthly: personalMonthly,
       annualExtract: annualPersonal + annualMort,
       annualPersonal, annualMort
     });
@@ -350,6 +350,8 @@ function setYear(idx) { activeIdx = idx; renderButtons(); renderCard(idx); }
 renderButtons();
 renderCard(0);
 
+let chart1Instance = null;
+
 // Glide path bars
 const glideEl = document.getElementById('glideChart');
 data.forEach(d => {
@@ -363,27 +365,34 @@ data.forEach(d => {
     </div>`;
 });
 
-// Chart
-new Chart(document.getElementById('chart1'), {
-  type: 'bar',
-  data: {
-    labels: data.map(d => d.calYear),
-    datasets: [
-      { label: 'Trading crypto', data: data.map(d => +(d.bot/1e6).toFixed(2)), backgroundColor: '#1D9E75' },
-      { label: 'Banca Privada', data: data.map(d => +(d.banca/1e6).toFixed(2)), backgroundColor: '#378ADD' },
-      { label: 'Casa Mallorca', data: data.map(d => +(d.mallorca/1e6).toFixed(2)), backgroundColor: '#7F77DD' },
-      { label: 'Efectivo', data: data.map(d => +(d.cash/1e6).toFixed(2)), backgroundColor: '#B4B2A9' },
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: €${ctx.raw}M` } } },
-    scales: {
-      x: { stacked: true, ticks: { font: { size: 10 }, maxRotation: 45 } },
-      y: { stacked: true, ticks: { callback: v => '€' + v + 'M', font: { size: 11 } } }
+// Chart — render after short delay to ensure canvas is visible
+function renderChart() {
+  if (chart1Instance) return;
+  const ctx = document.getElementById('chart1');
+  if (!ctx) return;
+  chart1Instance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.calYear),
+      datasets: [
+        { label: 'Trading crypto', data: data.map(d => +(d.bot/1e6).toFixed(2)), backgroundColor: '#1D9E75' },
+        { label: 'Banca Privada', data: data.map(d => +(d.banca/1e6).toFixed(2)), backgroundColor: '#378ADD' },
+        { label: 'Casa Mallorca', data: data.map(d => +(d.mallorca/1e6).toFixed(2)), backgroundColor: '#7F77DD' },
+        { label: 'Efectivo', data: data.map(d => +(d.cash/1e6).toFixed(2)), backgroundColor: '#B4B2A9' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: €${ctx.raw}M` } } },
+      scales: {
+        x: { stacked: true, ticks: { font: { size: 10 }, maxRotation: 45 } },
+        y: { stacked: true, ticks: { callback: v => '€' + v + 'M', font: { size: 11 } } }
+      }
     }
-  }
-});
+  });
+}
+
+setTimeout(renderChart, 100);
 
 // Tab switching
 function switchTab(tab) {
@@ -392,6 +401,7 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach((btn, i) => {
     btn.classList.toggle('active', (i === 0 && tab === 'numeros') || (i === 1 && tab === 'resumen'));
   });
+  if (tab === 'numeros') setTimeout(renderChart, 50);
 }
 </script>
 </body>
