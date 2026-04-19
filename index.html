@@ -255,8 +255,8 @@ function calcAll() {
   const results = [];
 
   for (let year = 1; year <= 10; year++) {
-    const personalThisYear = PERSONAL_BASE * Math.pow(1 + INFLATION, year - 1);
-    const monthlyExtract = MORT_PAYMENT + personalThisYear / 12;
+    const personalMonthly = PERSONAL_BASE * Math.pow(1 + INFLATION, year - 1);
+    const monthlyExtract = MORT_PAYMENT + personalMonthly;
 
     for (let m = 0; m < 12; m++) {
       bot = bot * 1.03 - monthlyExtract;
